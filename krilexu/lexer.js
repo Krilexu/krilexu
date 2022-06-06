@@ -24,7 +24,7 @@ class Lexer {
 
         let tokens = [];
 
-        let keywords = ["print", "let", "if", "else", "true", "false", "func", "call", "return", "loop", "break", "continue"];
+        let keywords = ["print", "let", "if", "else", "elseif", "true", "false", "func", "call", "return", "loop", "break", "continue"];
         const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890'
 
         // loop stream

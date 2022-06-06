@@ -87,13 +87,15 @@ class Interpreter {
                     this.#interpret(node.body[i]);
                 }
             case "IfStatement":
+                //  het elseif in order
                 condition = this.#interpret(node.test);
-
                 if(condition){
                     return this.#interpret(node.consequent);
-                }else{
+                }
+                else if(node.alternate != undefined){
                     return this.#interpret(node.alternate);
                 }
+                break;
             case "LoopStatement":
                 let times = this.#interpret(node.times);
                 if(!times){

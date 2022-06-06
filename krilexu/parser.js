@@ -39,7 +39,6 @@ class Parse {
                 this.#eat(types.EQUALS);
 
                 expr = this.#parseExpression();
-                //console.log(this.#at())//util.inspect(expr, {showHidden: false, depth: null}));
                 this.vars[identifier.value] = expr;
 
                 ast = {
@@ -161,42 +160,100 @@ class Parse {
                 this.#cursor--;
                 break;
             case "if":
-                // make if statement an else optional
+                //make if statement with elseif and else
                 this.#cursor++;
                 this.#eat(types.LPARENT);
-                // PARSE CONDIITION
                 let condition = this.#parseExpression();
-                //console.log(condition);
                 this.#eat(types.RPARENT);
                 if(this.#at().type == types.LAMDA) this.#eat(types.LAMDA);
                 this.#eat(types.LBRACE);
                 body = [];
                 while(this.#at().type != types.RBRACE){
-                    body.push(this.getAst(this.#tokens[this.#cursor]));
+                    let ast = this.getAst(this.#tokens[this.#cursor])
+                    body.push(ast);
                     this.#cursor++;
+                    if(ast?.type == "ReturnStatement"){
+                        while(this.#at().type != types.RBRACE){
+                            this.#cursor++;
+                        }
+                        break;
+                    }
                 }
                 this.#eat(types.RBRACE);
-
-                
-                if(this.#at().type == types.ELSE){
-                    this.#eat(types.ELSE);
+                let elseifs = [];
+                while(this.#at().type == types.KEYWORD && this.#at().value == "elseif"){
+                    this.#cursor++;
+                    this.#eat(types.LPARENT);
+                    let condition = this.#parseExpression();
+                    this.#eat(types.RPARENT);
+                    if(this.#at().type == types.LAMDA) this.#eat(types.LAMDA);
                     this.#eat(types.LBRACE);
-                    let elseBody = [];
+                    let body = [];
                     while(this.#at().type != types.RBRACE){
-                        elseBody.push(this.getAst(this.#tokens[this.#cursor]));
+                        let ast = this.getAst(this.#tokens[this.#cursor])
+                        body.push(ast);
                         this.#cursor++;
+                        if(ast?.type == "ReturnStatement"){
+                            while(this.#at().type != types.RBRACE){
+                                this.#cursor++;
+                            }
+                            break;
+                        }
+                    }
+                    this.#eat(types.RBRACE);
+                    elseifs.push({
+                        type: "IfStatement",
+                        test: condition,
+                        consequent: {
+                            type: "BlockStatement",
+                            body: body
+                        }
+                    });
+                }
+                let elseBody = [];
+                if(this.#at().type == types.KEYWORD && this.#at().value == "else"){
+                    this.#cursor++;
+                    if(this.#at().type == types.LAMDA) this.#eat(types.LAMDA);
+                    this.#eat(types.LBRACE);
+                    while(this.#at().type != types.RBRACE){
+                        let ast = this.getAst(this.#tokens[this.#cursor])
+                        elseBody.push(ast);
+                        this.#cursor++;
+                        if(ast?.type == "ReturnStatement"){
+                            while(this.#at().type != types.RBRACE){
+                                this.#cursor++;
+                            }
+                            break;
+                        }
                     }
                     this.#eat(types.RBRACE);
                 }
-
+                // make ast support infinite elseifs and one else
                 ast = {
                     type: "IfStatement",
                     test: condition,
                     consequent: {
                         type: "BlockStatement",
                         body: body
+                    },
+                    alternate: {
+                        type: "BlockStatement",
+                        body: elseBody
                     }
                 }
+
+                for(let i = elseifs.length - 1; i >= 0; i--){
+                    ast.alternate = {
+                        type: "IfStatement",
+                        test: elseifs[i].test,
+                        consequent: {
+                            type: "BlockStatement",
+                            body: elseifs[i].consequent.body
+                        },
+                        alternate: ast.alternate
+                    }
+                }
+
                 this.#cursor--;
                 break;
             case "loop":
@@ -208,7 +265,6 @@ class Parse {
                 if(loopTimes.type != "Literal" && loopTimes.type != "BinaryExpression"){
                     throw new Error(`Expected literal but got ${loopTimes.type} at line ${loopTimes.line} column ${loopTimes.column}`);
                 }
-                //console.log(condition);
                 this.#eat(types.RPARENT);
                 if(this.#at().type == types.LAMDA) this.#eat(types.LAMDA);
                 this.#eat(types.LBRACE);
@@ -328,11 +384,9 @@ class Parse {
         return left;
     }
 
-    //this.#at().type == types.EQUALITY || this.#at().type == types.INEQUALITY || this.#at().type == types.LESS_EQUAL || this.#at().type == types.GREATER_EQUAL || this.#at().type == types.LESS || this.#at().type == types.GREATER || this.#at().type == types.AND || this.#at().type == types.OR || this.#at().type == types.NOT
     // Multiplication and division
     #parseFactor (){
         let left = this.#parseType();
-        //console.log(this.#peak(-2).type == types.LPARENT, this.#peak(1).type==types.NUMBER,this.#peak(2)?.type == types.PLUS, this.#peak(3)?.type == types.STRING)
 
          while(this.#at().type == types.MULTIPLY || this.#at().type == types.DIVIDE || (this.#peak(-2).type == types.LPARENT && this.#peak(1).type==types.NUMBER && this.#peak(2)?.type == types.PLUS && (this.#peak(3)?.type == types.STRING||this.#peak(3)?.type == types.IDENTIFIER))||((this.#peak(-1).type == types.STRING || this.#peak(-1).type == types.IDENTIFIER)&& this.#at().type == types.PLUS)){
             let operator = this.#at();
@@ -359,6 +413,11 @@ class Parse {
             return literal;
         }
         else if(this.#at().type == types.KEYWORD){
+            if(this.#at().value == "true" || this.#at().value == "false"){
+                let literal =  { type: "Literal", value: this.#at().value == "true" ? true : false };
+                this.#eat(types.KEYWORD);
+                return literal;
+            }
             let ast = this.getAst(this.#at(),true);
             return ast;
         }

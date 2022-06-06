@@ -1,11 +1,8 @@
-
-// Declare function with "func" keyword, arguments and paranthesis are optional
+// Declare function with "func" keyword, arguments, parenthesis and arrows are optional
 func main(x) => {
     print("Hello World!");
 }
 
 
-// Call function with "call" keyword, arguments and paranthesis are optional
+// Call function with "call" keyword, arguments and parenthesis are optional
 call main()
-
-
