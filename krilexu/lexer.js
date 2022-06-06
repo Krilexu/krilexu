@@ -12,6 +12,10 @@ class Lexer {
         return this.#stream[this.#cursor];
     }
 
+    #peak (n=1){
+        return this.#stream[this.#cursor + n];
+    }
+
     tokenize(input=""){
         this.#stream = input;
         this.#cursor = 0;
@@ -36,6 +40,16 @@ class Lexer {
                     this.#line++;
                     this.#column = 0;
                     break
+                case "/":
+                    if(this.#peak() == "/"){
+                        while(this.#at() != "\n"){
+                            this.#cursor++;
+                        }
+                        this.#line++;
+                        this.#column = 0;
+                        break;
+                    }
+
                 case "=":
                     // check if next char is =
                     if(this.#stream[this.#cursor + 1] == "="){

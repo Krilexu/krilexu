@@ -1,5 +1,9 @@
+
+// Declare function with "func" keyword, arguments and paranthesis are optional
 func main => {
     return print("Hello, world!");
+    return print("Hello!");
 }
 
+// Call function with "call" keyword, arguments and paranthesis are optional
 call main
