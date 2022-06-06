@@ -1,13 +1,11 @@
 
 // Declare function with "func" keyword, arguments and paranthesis are optional
 func main(x) => {
-    return print()
+    print("Hello World!");
 }
 
 
 // Call function with "call" keyword, arguments and paranthesis are optional
-let x = call main()
-
-print(x)
+call main()
 
 
