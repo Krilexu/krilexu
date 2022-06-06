@@ -26,7 +26,7 @@ class Parse {
         }
     }
 
-    getAst (token){
+    getAst (token, backTrack=false){
         let ast;
         let expr;
         let identifier;
@@ -39,11 +39,7 @@ class Parse {
                 this.#eat(types.EQUALS);
 
                 expr = this.#parseExpression();
-
-                
-
-                const util = require('util');
-                console.log(this.#at())//util.inspect(expr, {showHidden: false, depth: null}));
+                //console.log(this.#at())//util.inspect(expr, {showHidden: false, depth: null}));
                 this.vars[identifier.value] = expr;
 
                 ast = {
@@ -64,7 +60,7 @@ class Parse {
                 this.#cursor++;
                 if(this.#at().type == types.GREATER_EQUAL) this.#eat(types.GREATER_EQUAL);
                 this.#eat(types.LPARENT);
-                expr = this.getAst(this.#tokens[this.#cursor]) || this.#parseExpression();
+                expr = this.#parseExpression();
                 this.#eat(types.RPARENT);
                 ast = {
                     type: "ExpressionStatement",
@@ -107,6 +103,7 @@ class Parse {
                         arguments: args
                     }
                 };
+                if(!backTrack) this.#cursor--;
                 break;
             case "func":
                 this.#cursor++;
@@ -129,8 +126,15 @@ class Parse {
                 body = [];
                 // get body
                 while(this.#at().type != types.RBRACE){
-                    body.push(this.getAst(this.#tokens[this.#cursor]));
+                    let ast = this.getAst(this.#tokens[this.#cursor])
+                    body.push(ast);
                     this.#cursor++;
+                    if(ast?.type == "ReturnStatement"){
+                        while(this.#at().type != types.RBRACE){
+                            this.#cursor++;
+                        }
+                        break;
+                    }
                 }
                 this.#eat(types.RBRACE);
                 ast = {
@@ -355,7 +359,7 @@ class Parse {
             return literal;
         }
         else if(this.#at().type == types.KEYWORD){
-            let ast = this.getAst(this.#at());
+            let ast = this.getAst(this.#at(),true);
             return ast;
         }
         else if(this.#at().type == types.STRING){

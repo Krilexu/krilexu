@@ -50,8 +50,10 @@ class Interpreter {
                     }
                     for(let i = 0; i < func.length; i++){
                         let res = this.#interpret(func[i]);
-                        for(let i = 0; i < args.length; i++){
-                            this.#vars[args[i]] = undefined
+                        if(func[i].expression?.callee?.name != "print"){
+                            for(let i = 0; i < args.length; i++){
+                                this.#vars[args[i]] = undefined
+                            }
                         }
                         if(res != undefined)return res;
                     }
