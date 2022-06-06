@@ -1,6 +1,6 @@
-const Lexer = require("./lexer")
-const Parser = require("./parser")
-const Interpreter = require("./interpreter")
+const Lexer = require("./krilexu/lexer")
+const Parser = require("./krilexu/parser")
+const Interpreter = require("./krilexu/interpreter")
 const util = require("util")
 
 
