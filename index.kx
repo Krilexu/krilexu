@@ -1,5 +1,5 @@
 func main => {
-    print("Hello, world!");
+    return print("Hello, world!");
 }
 
 call main

@@ -44,14 +44,18 @@ class Interpreter {
                 let func = this.#vars[node.callee.name];
                 // check if the function is a array
                 if(Array.isArray(func)){
-                    let args = Object.keys(this.#vars).filter(key => this.#vars[key] === "null")
+                    let args = Object.keys(this.#vars).filter(key => this.#vars[key] === "null" || this.#vars[key] === undefined)
                     for(let i = 0; i < args.length; i++){
                         if(this.#interpret(node.arguments[i]) !== undefined)this.#vars[args[i]] = this.#interpret(node.arguments[i]);
                     }
                     for(let i = 0; i < func.length; i++){
                         let res = this.#interpret(func[i]);
+                        for(let i = 0; i < args.length; i++){
+                            this.#vars[args[i]] = undefined
+                        }
                         if(res != undefined)return res;
                     }
+                
                     return "null"
                 }
                 // make args run block statement
@@ -152,10 +156,19 @@ class Interpreter {
             case "!=":
                 return left != right;
             case "not":
+                if(right == undefined){
+                    throw new Error("Expected conditional expression or boolean value");
+                }
                 return !right;
             case "and":
+                if(left == undefined || right == undefined){
+                    throw new Error("Expected conditional expression or boolean value");
+                }
                 return left && right;
             case "or":
+                if(left == undefined || right == undefined){
+                    throw new Error("Expected conditional expression or boolean value");
+                }
                 return left || right;
         }
     }

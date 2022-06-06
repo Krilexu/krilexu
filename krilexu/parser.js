@@ -38,7 +38,12 @@ class Parse {
                 this.#cursor++;
                 this.#eat(types.EQUALS);
 
-                expr = this.getAst(this.#tokens[this.#cursor]) || this.#parseExpression();
+                expr = this.#parseExpression();
+
+                
+
+                const util = require('util');
+                console.log(this.#at())//util.inspect(expr, {showHidden: false, depth: null}));
                 this.vars[identifier.value] = expr;
 
                 ast = {
@@ -102,7 +107,6 @@ class Parse {
                         arguments: args
                     }
                 };
-                this.#cursor--;
                 break;
             case "func":
                 this.#cursor++;
@@ -256,7 +260,6 @@ class Parse {
                 right: right
             };
         }
-
         return left;
     }
 
@@ -276,7 +279,6 @@ class Parse {
                 right: right
             };
         }
-
         return left;
     }
 
@@ -352,6 +354,10 @@ class Parse {
             this.#eat(types.NUMBER);
             return literal;
         }
+        else if(this.#at().type == types.KEYWORD){
+            let ast = this.getAst(this.#at());
+            return ast;
+        }
         else if(this.#at().type == types.STRING){
             let literal =  { type: "Literal", value: this.#at().value };
             this.#eat(types.STRING);
@@ -366,7 +372,6 @@ class Parse {
             this.#eat(types.LPARENT);
             let expr = this.#parseExpression();
             this.#eat(types.RPARENT);
-            console.log(expr);
             return expr;
         }
         

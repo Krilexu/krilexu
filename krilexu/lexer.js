@@ -25,6 +25,8 @@ class Lexer {
 
         // loop stream
         while(this.#cursor < this.#stream.length){
+            let columnFix = 0;
+            let value = "";
             switch(this.#at()){
                 case " ":
                 case "\t":
@@ -75,8 +77,24 @@ class Lexer {
                             break
                         }
                     }
-                    tokens.push({type: tokenTypes.IDENTIFIER, value: "n", line: this.#line, column: this.#column});
-                    this.#column++;
+                    value = "";
+                    columnFix = -2;
+
+                    while(chars.includes(this.#at()) && this.#cursor < this.#stream.length){
+                        value += this.#at();
+                        this.#cursor++;
+                        columnFix++
+                    }
+
+                    this.#cursor--;
+
+                    if(keywords.includes(value)){
+                        tokens.push({type: tokenTypes.KEYWORD, value: value, line: this.#line, column: this.#column});
+                    }
+                    else{
+                        tokens.push({type: tokenTypes.IDENTIFIER, value: value, line: this.#line, column: this.#column});
+                    }
+                    this.#column += columnFix;
                     break;
                 case "o":
                     if(this.#stream[this.#cursor + 1] == "r"){
@@ -90,8 +108,24 @@ class Lexer {
                         this.#column++;
                         break
                     }
-                    tokens.push({type: tokenTypes.IDENTIFIER, value: "o", line: this.#line, column: this.#column});
-                    this.#column++;
+                    value = "";
+                    columnFix = -2;
+
+                    while(chars.includes(this.#at()) && this.#cursor < this.#stream.length){
+                        value += this.#at();
+                        this.#cursor++;
+                        columnFix++
+                    }
+
+                    this.#cursor--;
+
+                    if(keywords.includes(value)){
+                        tokens.push({type: tokenTypes.KEYWORD, value: value, line: this.#line, column: this.#column});
+                    }
+                    else{
+                        tokens.push({type: tokenTypes.IDENTIFIER, value: value, line: this.#line, column: this.#column});
+                    }
+                    this.#column += columnFix;
                     break;
                 case "a":
                     if(this.#stream[this.#cursor + 1] == "n"){
@@ -107,6 +141,26 @@ class Lexer {
                             break
                         }
                     }
+                    
+                    value = "";
+                    columnFix = -2;
+
+                    while(chars.includes(this.#at()) && this.#cursor < this.#stream.length){
+                        value += this.#at();
+                        this.#cursor++;
+                        columnFix++
+                    }
+
+                    this.#cursor--;
+
+                    if(keywords.includes(value)){
+                        tokens.push({type: tokenTypes.KEYWORD, value: value, line: this.#line, column: this.#column});
+                    }
+                    else{
+                        tokens.push({type: tokenTypes.IDENTIFIER, value: value, line: this.#line, column: this.#column});
+                    }
+                    this.#column += columnFix;
+                    break;
                 case "+":
                     tokens.push({type: tokenTypes.PLUS, value: "+", line: this.#line, column: this.#column});
                     this.#column++;
@@ -177,7 +231,7 @@ class Lexer {
                 case '"':
                     let string = "";
                     this.#cursor++;
-                    let columnFix = -2;
+                    columnFix = -2;
 
                     while(this.#at() != '"' && this.#cursor < this.#stream.length){
                         string += this.#at();
@@ -209,8 +263,8 @@ class Lexer {
                         tokens.push({type: tokenTypes.NUMBER, value: parseFloat(value, 10), line: this.#line, column: this.#column});
                     }
                     else if(chars.includes(this.#at())){
-                        let value = "";
-                        let columnFix = -2;
+                        value = "";
+                        columnFix = -2;
 
                         while(chars.includes(this.#at()) && this.#cursor < this.#stream.length){
                             value += this.#at();
